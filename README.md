@@ -71,7 +71,18 @@ See **Paths** above and `data/README.md`.
 
 ## Checkpoints
 
-Download the `v1.0` Release zips and unzip so you have:
+Weights are **not** in git. Download the four zips from
+[Releases](https://github.com/Anil970198/Execution_Aware_Spectral_Allocation_Compressive_Sensing/releases)
+and unzip **into** `checkpoints/` (so the zip folders `csformer/`, `ours-qkv/`, … sit next to `MANIFEST.txt`):
+
+```bash
+unzip csformer-coco-cs1-50.zip -d checkpoints
+unzip ours-qkv-cs1-50.zip -d checkpoints
+unzip ours-qkv-ffn-cs1-50.zip -d checkpoints
+unzip ablations-cs25.zip -d checkpoints
+```
+
+You should then have:
 
 ```
 checkpoints/csformer/CS{1,4,10,25,50}/checkpoint.pth
@@ -81,7 +92,7 @@ checkpoints/ours-qkv-ffn/CS{r}/prune_indices.pt
 checkpoints/ablations/<name>/checkpoint.pth
 ```
 
-Details: `checkpoints/MANIFEST.txt`.
+Details: `checkpoints/MANIFEST.txt`. Do not `git add` the `.pth` files.
 
 ## Table 1 (infer saved weights)
 
