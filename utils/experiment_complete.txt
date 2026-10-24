@@ -1,0 +1,459 @@
+================================================================================
+EXPERIMENT_COMPLETE — planned experiments + locked numbers only
+*** THIS IS THE MAIN / CANONICAL RESULTS FILE ***
+
+Protocol: CSformer_COCO → Ours-QKV (N·E, α=0.75) → Ours-QKV+FFN (Taylor ρ=0.5)
+Updated: 2026-08-26 (Sec 4.1 protocol + MAIN/SUPP plan + readiness; T12 locked)
+
+Source hierarchy (do not treat as equals):
+  1) utils/experiment_complete.txt     ← MAIN (locked tables live here)
+  2) ablation_results/                 ← clean score ladder / α-sweep / matched
+       clean_ablation_cs25_no_topr/    (T6, T8–T11); ABLATION_TABLES.md
+  3) paper_results/                    ← OLD product-era CSVs + rank figure
+       (T1 product cols / T4–T5 / T7 / rank fig). Prefer values already
+       copied into this file; do not re-scrape paper_results as truth.
+
+--------------------------------------------------------------------------------
+PAPER THESIS (one sentence — every table/figure should point here)
+--------------------------------------------------------------------------------
+In progressive Transformer CS reconstruction, parameter-efficient spectral
+allocation is NOT necessarily execution-efficient; spectral capacity should be
+allocated by reconstruction relevance relative to stage-dependent projection
+burden. Controlled counterexample @ α=0.75:
+  |σḡ|     → γ=1.066  (same quality)
+  |σḡ|/(NE)→ γ=0.732  (Ours)
+i.e.  α<1  ≠⇒  γ<1.
+
+Method framing (locked):
+  S_ℓj = |σ_ℓj ḡ_ℓj| / (N_ℓ E_ℓ)     ← execution-aware utility (priority)
+  ΔP_ℓ = 4 E_ℓ                        ← parameter / structural budget (α pack)
+  Realization (LOCKED, implementation-faithful):
+    S_ℓj → 𝒮_ℓ (admitted indices) → shared-QKV init from 𝒮_ℓ → FT
+  Claim / interpretation: principal effect = cross-block {r_ℓ}
+    Matched top-r ablation (same r_ℓ, leading singular dirs) ≈ NE quality
+  Do NOT claim that multi-CS main checkpoints were re-run as standard top-r
+  unless those ckpts are actually regenerated that way.
+
+Do NOT claim: NE uniquely keeps γ<1 (Uniform γ=0.75, |σ| γ=0.634 also <1).
+DO claim: grad-aware WITHOUT execution norm can EXCEED dense QKV (γ>1); NE restores
+sub-dense γ while preserving quality.
+
+Do NOT put T2 legacy Uniform@α=0.50 (12-img Set11, 35.69) in main paper tables.
+Latency: never claim universally faster; report @64 vs @256 honestly.
+--------------------------------------------------------------------------------
+
+FIG.1 LOCK (intro teaser — empirical bars, not illustrative)
+  Full drafting spec: My Paper/figs/fig1_LOCKED_SPEC.txt
+  Caption draft:     My Paper/figs/fig1_teaser_caption.txt
+  Title: Progressive reconstruction creates a mismatch between structural
+         and execution cost
+  Y-axis in (b)/(c): stage-mean r_ℓ/E_ℓ  (from rank_allocation_cs25_a075.csv)
+
+  Stage-mean r/E @ α=0.75:
+    Stage | Uniform | |σḡ|   | Ours (NE)
+      S1  | 0.5625  | 0.4680 | 0.5414
+      S2  | 0.5625  | 0.8250 | 0.6484
+      S3  | 0.5625  | 0.9188 | 0.5938
+      S4  | 0.5625  | 0.9875 | 0.4125
+  Pattern: |σḡ|  .47→.83→.92→.99 (S4 ≈ full); Ours .54→.65→.59→.41 (not a bell)
+  S4 |σḡ| blocks: 31/32,32/32,32/32,31/32,32/32 @ N=4096
+  Mechanism: S4 r/E 98.75%→41.25%; γ 1.0664→0.7320; S4/S1 |σḡ|≈2.11× vs Ours≈0.76×
+  Panel outcomes (exact):
+    |σḡ|: γ=1.066; Set11 35.45/0.9571; Urban 34.12/0.9470
+    Ours: γ=0.732; Set11 35.45/0.9571; Urban 34.11/0.9469
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+SEC 4.1 — EXPERIMENTAL SETTINGS (draft from scripts; no new runs)
+--------------------------------------------------------------------------------
+Backbone / pretrained:
+  Published CSformer (hybrid CNN–Transformer) trained on COCO unlabeled2017
+  (CSformer_COCO). Ablation compressions start from:
+    logs/checkpoint_coco/checkpoint_CS{ratio}.pth   (default BASE_CKPT)
+  Main multi-CS tables use the same COCO-pretrained family.
+
+Compression (Ours-QKV):
+  Offline joint-QKV SVD + reconstruction-grad calib on COCO patches.
+  Calib: qsvd_calib_nsamples=64, batch_size=2  → ~32 batches (clean ablation).
+  Calib loss: MSE (default rec_loss_type / rec_loss_type_calib = l2) unless overridden.
+  Score: S = |σ||ḡ| / (N E)  (λ=1); structural pack α0=0.75 default.
+  Sensing operator, initialization, CNN stem, feature aggregation, head:
+    structurally unchanged (not redesigned); recovery fine-tunes full compressed
+    Transformer factors (Adam on model params — do not claim sensing/CNN frozen
+    unless a freeze flag is verified in that run’s log).
+
+Recovery fine-tuning (FT30):
+  Dataset: COCO unlabeled2017
+  Optimizer: Adam (betas from cfg; CosineAnnealingLR → eta_min=1e-6)
+  LR: 1e-4   batch: 10   epochs: 30   workers: 8
+  Patch: 64×64, datarange -11
+
+FFN (Ours-QKV+FFN product):
+  Keep ratio ρ=0.5; default criterion Taylor (T4); Mag locked; Random LOCKED 2026-08-27
+  Applied after QKV FT parent; second FT30 on pruned product.
+
+Evaluation:
+  PSNR / SSIM, overlap reconstr. stride 8, patch 64×64
+  Datasets: Set5, Set11, Set14, BSD68, Urban100
+  Ablation headline tables: Set11 + Urban100 @ CS25 unless noted
+
+Efficiency metrics:
+  α, γ, η = paper QKV formulas (utils/qsvd_shared_metrics.py); η ≠ GPU peak mem
+  Latency: scripts/benchmark_infer_cs25.py — batch=1, warmup=15, iters=80,
+           sizes 64×64 and 256×256; CUDA synchronize; report ms/img + throughput
+  Hardware: ParamGanga Neo GPU partition (V100); matched Dense/QKV/Product
+            latency locked 2026-08-26 (same bench protocol — not iso-latency)
+
+Default operating point: α0=0.75, ρ=0.5, CS%=25 for controlled ablations.
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+WACV EXPERIMENTS PLAN — MAIN vs SUPPLEMENT (page-budget LOCKED)
+--------------------------------------------------------------------------------
+MAIN PAPER target: ~3 tables + 3–4 figures (core claim only).
+
+MAIN tables:
+  Table 1  T1     Reconstruction: Dense | Ours-QKV | Ours-QKV+FFN
+                  5 datasets × 5 CS ratios (PSNR/SSIM)
+  Table 2  T8+    Core allocation @ CS25 α=0.75:
+                  Uniform | |σ| | R=|σḡ| | R/E (re) | R/N (rn) | R/(NE) | Matched top-r
+                  + optional classical R/(4E) as negative row (T6)
+                  Cols: Set11, Urban100, α, γ, η
+  Table 3  T3+T7  Dense → Ours-QKV → Ours-QKV+FFN
+                  Params, peak mem, Set11, t64, t256 (matched bench LOCKED)
+
+MAIN figures:
+  Fig.1  Motivation (structural–execution mismatch)     HAVE design / lock
+  Fig.2  Method pipeline (4-panel)                      NEED fig_method.pdf
+  Fig.3  Stage-mean r_ℓ/E_ℓ: Uniform / R / Ours         HAVE CSV; redraw clean
+  Fig.4  Qualitative (optional; first to cut if tight)  HAVE
+
+MAIN text only (full tables → SUPP):
+  α-sweep T10: one sentence (γ 0.938→0.603, Set11 within 0.02 dB)
+  λ-sweep T12: one sentence (γ 1.015→0.732 as λ 0.25→1); full table SUPP
+  FFN Mag/Taylor/Random: SUPP (not intellectual center)
+
+SUPPLEMENT:
+  S1 α-sweep T10 | S2 full λ-sweep T12 | S3 FFN Mag/Taylor/Random T4
+  S4 product all-CS efficiency T5 | S5 per-block ranks | stage ΔP/ΔC table
+  Method derivations (already in supplement.tex) | extra quals
+
+SECTION ORDER (revised):
+  4.1 Settings          ← protocol block above
+  4.2 Reconstruction    ← Table 1 (T1)
+  4.3 Why execution-aware? ← Table 2 + Fig.3  (MAIN ablation)
+  4.4 What determines gain? ← matched top-r row already in Table 2;
+                              λ/rn/re one sentence + cite SUPP
+  4.5 Budget + FFN      ← Dense→QKV→FFN in Table 3; α/FFN details SUPP
+  4.6 Efficiency        ← Table 3 latency columns
+  4.7 Qualitative       ← Fig.4 if space
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+READINESS — numbers / figures vs plan
+--------------------------------------------------------------------------------
+MAIN Table 1 (T1):           READY     numbers locked
+MAIN Table 2 (T8+T6+T9+re/rn): READY   merge T12 re/rn rows into Table 2;
+                                       λ full sweep stays SUPP
+MAIN Table 3 (T3+latency):   BLOCKED   T3 params/quality READY;
+                                       matched Dense/QKV/Product latency NEED (Neo)
+MAIN Fig.1:                  ~READY    figure1.png / lock; redraw bars if needed
+MAIN Fig.2:                  NEED      figs/fig_method.pdf placeholder
+MAIN Fig.3 rank r/E:         READY     My Paper/figs/fig3_rank_allocation.{pdf,png}
+MAIN Fig.4 qualitative:      READY     My Paper/figs/fig4_qualitative_main.{pdf,png}
+                             SUPP S1/S2: figS1_qualitative_set11, figS2_qualitative_urban100
+SUPP T10 α-sweep:            READY
+SUPP T12 λ-sweep:            READY
+SUPP T4 FFN criterion:       READY     Mag+Taylor+Random LOCKED
+SUPP method derivations:     READY     supplement.pdf
+SUPP qualitative grids:      READY     figS1 (Set11), figS2 (Urban100 vs Dense)
+
+STATUS: ~92% numbers for MAIN story; ~85% camera-ready assets
+  MUST for MAIN Table 3: matched latency (Job B)
+  DONE for SUPP T4: Random FFN LOCKED (Job A)
+  MUST for MAIN polish: Fig.2 method figure; Fig.3 redraw from locked CSV
+--------------------------------------------------------------------------------
+
+STATUS: experimentally ready for MAIN + SUPP core tables
+  DONE: matched latency (T7); Random FFN (T4)
+  DONE extras: λ-sweep + rn/re (T12)
+
+
+================================================================================
+T1  MAIN RECONSTRUCTION — CSformer_COCO vs Ours-QKV vs Ours-QKV+FFN
+    (full prior columns live in LaTeX; track our three columns here)
+    PSNR/SSIM
+================================================================================
+
+Set11
+CS% | COCO          | Ours-QKV      | Ours-QKV+FFN
+  1 | 21.95/0.6241  | 21.82/0.6363  | 21.70/0.6362
+  4 | 26.93/0.8251  | 26.84/0.8253  | 26.89/0.8257
+ 10 | 30.60/0.9027  | 30.60/0.9023  | 30.56/0.9010
+ 25 | 35.46/0.9570  | 35.44/0.9570  | 35.34/0.9565
+ 50 | 41.04/0.9831  | 41.16/0.9832  | 41.00/0.9828
+
+BSD68
+CS% | COCO          | Ours-QKV      | Ours-QKV+FFN
+  1 | 23.07/0.5591  | 22.84/0.5643  | 22.82/0.5623
+  4 | 25.91/0.7045  | 25.71/0.7032  | 25.76/0.7030
+ 10 | 28.28/0.8078  | 28.11/0.8068  | 28.10/0.8054
+ 25 | 31.91/0.9102  | 31.78/0.9090  | 31.74/0.9083
+ 50 | 37.16/0.9714  | 37.20/0.9717  | 37.00/0.9706
+
+Urban100
+CS% | COCO          | Ours-QKV      | Ours-QKV+FFN
+  1 | 21.94/0.5885  | 22.07/0.6014  | 22.05/0.6014
+  4 | 26.13/0.7803  | 26.24/0.7853  | 26.26/0.7854
+ 10 | 29.61/0.8762  | 29.63/0.8792  | 29.51/0.8769
+ 25 | 34.16/0.9470  | 34.12/0.9471  | 33.96/0.9461
+ 50 | 39.46/0.9811  | 39.44/0.9809  | 39.21/0.9804
+
+Set5
+CS% | COCO          | Ours-QKV      | Ours-QKV+FFN
+  1 | 25.22/0.7197  | 25.02/0.7295  | 24.88/0.7281
+  4 | 30.31/0.8686  | 30.21/0.8696  | 30.30/0.8696
+ 10 | 34.20/0.9262  | 34.14/0.9260  | 34.07/0.9246
+ 25 | 38.30/0.9619  | 38.25/0.9615  | 38.20/0.9611
+ 50 | 43.55/0.9845  | 43.74/0.9846  | 43.54/0.9842
+
+Set14
+CS% | COCO          | Ours-QKV      | Ours-QKV+FFN
+  1 | 23.88/0.6146  | 23.82/0.6234  | 23.78/0.6229
+  4 | 27.78/0.7581  | 27.79/0.7615  | 27.86/0.7617
+ 10 | 30.85/0.8515  | 30.85/0.8522  | 30.79/0.8507
+ 25 | 35.04/0.9316  | 35.03/0.9314  | 34.92/0.9306
+ 50 | 40.41/0.9730  | 40.57/0.9736  | 40.41/0.9731
+
+vs COCO over 25 cells: mean ΔPSNR(QKV)≈−0.03 dB; mean ΔPSNR(QKV+FFN)≈−0.10 dB
+
+
+================================================================================
+T2  MATCHED-BUDGET @ CS25 Set11  (α params / γ MACs / η buffer)
+================================================================================
+
+Method                   | Budget | PSNR  | SSIM   | α ratio | γ Curr | γ ratio | η Curr | η ratio
+Baseline COCO            | --     | 35.46 | 0.9570 | 1.00    | 0.252G | 1.00    | 2.46M  | 1.00
+Uniform† r={96..12}      | 0.50   | 35.69 | 0.9557 | 0.50    | 0.126G | 0.50    | 0.461M | 0.188
+Ours-QKV                 | 0.50   | 35.42 | 0.9570 | 0.50    | 0.115G | 0.456   | 0.339M | 0.138
+Uniform r={144..18}      | 0.75   | 35.44 | 0.9571 | 0.75    | 0.189G | 0.75    | 0.691M | 0.281
+Ours-QKV                 | 0.75   | 35.44 | 0.9570 | 0.75    | 0.183G | 0.728   | 0.612M | 0.249
+Ours-QKV+FFN             | 0.75   | 35.34 | 0.9565 | 0.75    | 0.183G | 0.728   | 0.612M | 0.249
+
+† Uniform@0.50 legacy 12-img Set11 — DO NOT put in final MAIN paper tables (protocol differs).
+Clean comparable results only for main experiments. QKV+FFN shares QKV costs with Ours-QKV.
+Clean re-run NE@0.75 (T8): Set11 35.45/0.9571, γ=0.732 — consistent with locked Ours-QKV.
+
+
+================================================================================
+T3  COMPLEMENTARITY @ CS25
+================================================================================
+
+Method        | ParamsM | CKPT_MB | α    | γ     | Set11 | Set14
+COCO          | 6.67    | 26.2    | 1.00 | 1.00  | 35.46 | 35.04
+Ours-QKV      | 6.345   | ~25     | 0.75 | 0.728 | 35.44 | 35.03
+Ours-QKV+FFN  | 4.600   | 18.34   | 0.75 | 0.728 | 35.34 | 34.92
+
+
+================================================================================
+T4  FFN CRITERION @ product parent CS25 (ρ=0.5)
+================================================================================
+
+Criterion | ParamsM | Set11 | Set14 | lat64
+Magnitude | 4.600   | 35.32 | 34.91 | 15.87
+Taylor    | 4.600   | 35.34 | 34.92 | 15.03   ← locked
+Random    | 4.600   | 35.33 | 34.90 | 15.26   ← locked 2026-08-27 (seed 12345)
+  Source: ffn_random_product_cs25/summary_random.csv
+  set11_psnr=35.33, set14_psnr=34.90; params_M=4.5997; gamma_ratio=0.7281
+  Takeaway: Random ≈ Mag ≈ Taylor (≤0.02 dB). Do NOT claim Taylor meaningfully
+  superior. Primary FFN benefit = structured width reduction (ρ=0.5); Taylor is
+  default reconstruction-aware rule only. Single seed 12345 OK for SUPP sanity.
+
+
+================================================================================
+T5  EFFICIENCY — Ours-QKV+FFN all CS  (product Taylor)
+================================================================================
+
+CS% | ParamsM | CKPT | α    | γ      | η      | lat64 | lat256 | Set11 | Set14 | Urban | BSD68 | Set5
+  1 | 4.561   |18.19 | 0.75 | 0.8234 | 0.3217 | 15.54 | 25.47  | 21.70 | 23.78 | 22.05 | 22.82 | 24.88
+  4 | 4.566   |18.21 | 0.75 | 0.7930 | 0.3008 | 15.74 | 25.62  | 26.89 | 27.86 | 26.26 | 25.76 | 30.30
+ 10 | 4.575   |18.24 | 0.75 | 0.7367 | 0.2709 | 16.60 | 25.85  | 30.56 | 30.79 | 29.51 | 28.10 | 34.07
+ 25 | 4.600   |18.34 | 0.75 | 0.7281 | 0.2488 | 15.03 | 25.24  | 35.34 | 34.92 | 33.96 | 31.74 | 38.20
+ 50 | 4.641   |18.49 | 0.75 | 0.8734 | 0.3101 | 15.11 | 25.34  | 41.00 | 40.41 | 39.21 | 37.00 | 43.54
+
+
+================================================================================
+T6  N·E vs 4E-PRIORITY (negative ablation) — FULL EVAL LOCKED 2026-08-25
+    Clean FT30 + Set11 + Urban100 @ CS25 α=0.75
+================================================================================
+
+Score                    | Set11        | Urban100     | α    | γ      | η
+|σ||g|/(4E) classical    | 35.46/0.9571 | 34.12/0.9470 | 0.75 | 1.1109 | 0.4723   ← failed (γ>1)
+|σ||g|/(N·E) Ours (NE)   | 35.45/0.9571 | 34.11/0.9469 | 0.75 | 0.7320 | 0.2504   ← locked
+
+Takeaway: quality tied; classical 4E = parameter-cost ablation that STILL inflates γ
+(γ=1.111). Shows parameter-efficient ≠ execution-efficient (late stages: small E, large N).
+Retain in score-ablation table as negative baseline. Do NOT use as method.
+
+
+================================================================================
+T7  LATENCY — Matched Dense | Ours-QKV | Product @ CS25 (V100, batch=1)
+    Protocol: same bench (warmup/iters/sizes) — NOT iso-latency retuning.
+    Locked 2026-08-26 from Neo matched-latency job (pull OK).
+================================================================================
+
+Method        | Set11 | Params | γ     | lat64 | lat256 | Peak mem†
+Dense         | 35.47 | 6.67M  | 1.000 | 13.0  | 26.7   | 221 MB
+Ours-QKV      | 35.45 | 6.35M  | 0.732 | 15.3  | 27.4   | 259 MB   (−0.02 dB)
+Product       | 35.34 | 4.60M  | 0.732 | 14.7  | 25.0   | 200 MB   (−0.13 dB; −31% params)
+
+† Peak mem / CKPT → supplementary efficiency table (η ≠ GPU peak mem).
+MAIN Table 3 columns: Set11, Params, γ, lat64, lat256 (use Dense 35.47 from this run).
+
+Takeaways (LOCKED wording):
+- Quality holds: QKV ≈ Dense; Product −0.13 dB for ~31% fewer params.
+- Same bench protocol for all models (not iso-latency retuning — do not say
+  “not iso-latency” in the caption; explain α=0.75 / ρ=0.5 in setup text).
+- Dense wins @64²; Product wins @256² (~6.4% lower: 26.7→25.0 ms) and peak mem.
+- Ours-QKV slower than Dense on V100 is expected (many small low-rank GEMMs
+  vs one large dense matmul). Analytical γ↓ ≠ proportional wall-clock ↓.
+- Sell: quality + params + γ + runtime; mixed latency is a strength when framed
+  as projection reduction ≠ GPU latency.
+
+Older Dense-vs-Product-only CSV retained historically under
+paper_results/latency_baseline_vs_product_cs25.csv (prior pull).
+
+
+================================================================================
+T8  SCORE LADDER @ CS25 α=0.75  (CLEAN) — LOCKED 2026-08-25
+    Protocol: compress → FT30 → overlap Set11 + Urban100
+    Source: ablation_results/clean_ablation_cs25_no_topr/
+================================================================================
+
+Method            | Score              | Set11        | Urban100     | α    | γ      | η
+Uniform           | uniform r          | 35.44/0.9571 | 34.13/0.9471 | 0.75 | 0.7500 | 0.2812
+|σ|               | |σ|                | 35.43/0.9570 | 34.09/0.9468 | 0.75 | 0.6336 | 0.2045
+|σḡ|              | |σ||ḡ|             | 35.45/0.9571 | 34.12/0.9470 | 0.75 | 1.0664 | 0.4564
+Classical 4E      | |σ||ḡ|/(4E)        | 35.46/0.9571 | 34.12/0.9470 | 0.75 | 1.1109 | 0.4723
+NE (Ours-QKV)     | |σ||ḡ|/(N·E)       | 35.45/0.9571 | 34.11/0.9469 | 0.75 | 0.7320 | 0.2504  ← locked
+Matched top-r     | same r_ℓ as NE     | 35.43/0.9571 | 34.13/0.9471 | 0.75 | 0.7320 | 0.2504
+
+Takeaway (LOCKED — corrected):
+  Gradient-aware allocation without execution normalization can exceed the dense
+  QKV workload (γ=1.066 for |σḡ|; γ=1.111 for classical 4E), whereas the proposed
+  NE-aware allocation restores sub-dense projection cost (γ=0.732) while preserving
+  reconstruction quality (Set11/Urban tied within ~0.03 dB).
+  Counterexample: α<1  ≠⇒  γ<1.
+  NOTE: Uniform (γ=0.750) and |σ| (γ=0.634) also have γ<1 — do NOT write
+  “only NE keeps γ<1”. |σ| is task-agnostic; goal is relevance + avoid compute inflation,
+  not minimize γ alone.
+
+
+================================================================================
+T9  MATCHED RANKS — top-r init vs NE-selected S_ℓ  (same r_ℓ as NE)
+================================================================================
+
+Method         | Init            | Set11        | Urban100     | γ
+NE (selected)  | knapsack S_ℓ    | 35.45/0.9571 | 34.11/0.9469 | 0.732
+Matched top-r  | top-r per layer | 35.43/0.9571 | 34.13/0.9471 | 0.732
+
+Δ Set11 ≈ −0.02 dB. Useful effect is CROSS-BLOCK rank allocation (r_ℓ), not exotic
+within-layer spectral-component picking. Paper realization:
+  S_ℓj → r_ℓ → standard top-r_ℓ shared-QKV.
+Stop advertising non-prefix component selection as a contribution.
+Rank figure: paper_results/fig_rank_allocation_cs25_a075.{pdf,png}
+  Prefer normalized r_ℓ/E_ℓ in main paper; legend with γ (|σḡ| γ=1.066; NE γ=0.732).
+  Title suggestion: “Rank allocation at matched QKV budget (α=0.75)”
+
+
+================================================================================
+T10  α-SWEEP — Ours-QKV / NE only @ CS25  — LOCKED 2026-08-25
+================================================================================
+
+α tgt | Set11        | Urban100     | α act | γ      | η
+ 0.90 | 35.45/0.9572 | 34.15/0.9472 | 0.900 | 0.9383 | 0.3435
+ 0.75 | 35.45/0.9571 | 34.11/0.9469 | 0.750 | 0.7320 | 0.2504  ← default
+ 0.60 | 35.43/0.9571 | 34.11/0.9470 | 0.600 | 0.6031 | 0.1998
+
+Takeaway: quality flat 0.90→0.60; γ/η track α. α=0.75 = default operating point for
+controlled comparisons — NOT claimed universally optimal. α is user-controlled
+structural budget; method answers where to allocate capacity GIVEN α.
+α=0.60 still Set11 35.43 / Urban 34.11 — no quality cliff.
+
+
+================================================================================
+T12  EXECUTION-NORM ABLATIONS — λ-sweep + rn/re @ CS25 α=0.75  — LOCKED 2026-08-26
+    Source: ablation_results/csformer_h100_extra_ablation_neo/
+    Protocol: compress → FT30 → overlap Set11 + Urban100
+    Score family (R = |σ||ḡ| unless noted):
+      S = R / (N E)^λ     with λ ∈ {0.25, 0.50, 0.75, 1.00}
+      rn: S = R / N       (token-count only; no E)
+      re: S = R / E       (channel-width only; no N)  ≈ soft classical-4E cousin
+    Locked NE default is λ=1.00 (T8).
+================================================================================
+
+Score / λ              | Set11        | Urban100     | α     | γ      | η
+λ=0.25  R/(NE)^0.25    | 35.45/0.9571 | 34.12/0.9470 | 0.750 | 1.0148 | 0.4291
+λ=0.50  R/(NE)^0.50    | 35.44/0.9571 | 34.14/0.9472 | 0.750 | 0.9391 | 0.3833
+λ=0.75  R/(NE)^0.75    | 35.44/0.9571 | 34.14/0.9472 | 0.750 | 0.8641 | 0.3396
+λ=1.00  R/(NE)  NE←T8  | 35.45/0.9571 | 34.11/0.9469 | 0.750 | 0.7320 | 0.2504  ← locked
+rn      R/N            | 35.39/0.9568 | 34.01/0.9464 | 0.750 | 0.4398 | 0.0870
+re      R/E            | 35.43/0.9571 | 34.15/0.9472 | 0.750 | 1.1094 | 0.4716
+
+Takeaway (LOCKED):
+  (1) λ-sweep: quality essentially flat; γ decreases monotonically as λ↑.
+      λ=0.25 still yields γ>1 (1.015) — partial execution penalty is not enough.
+      Full λ=1 (NE) restores γ=0.732. Supports using (NE)^1, not a milder power.
+  (2) re (divide by E only): γ=1.109 ≈ classical 4E failure (T6 γ=1.111).
+      Confirms: parameter-side / width-only denominators do NOT fix compute inflation.
+  (3) rn (divide by N only): γ collapses to 0.440 but quality drops
+      (Set11 −0.06 dB, Urban −0.10 dB vs NE). Over-penalizes late stages;
+      N alone is too aggressive without the E factor that matches ΔC∝NE.
+  (4) Positioning: strengthens that the *right* execution prior is ΔC∝N E
+      (equivalently λ=1 on NE), not “any denominator that mentions N or E.”
+
+Paper use: SUPP Table S2 (full λ); MAIN only one trend sentence.
+  Merge rn + re into MAIN Table 2 as denominator controls (not full λ grid).
+Do NOT claim λ was cross-validated as uniquely optimal beyond this discrete sweep.
+
+
+================================================================================
+T11  LATENCY — NE α-sweep only (V100, from infer_latency.csv)
+================================================================================
+
+α    | ParamsM | CKPT_MB | lat64_ms | thr64 | lat256_ms | thr256 | peak_MB
+0.90 | 6.54    | 25.74   | 15.53    | 64.4  | 27.79     | 36.0   | 273.5
+0.60 | 6.15    | 24.25   | 14.72    | 67.9  | 27.29     | 36.7   | 253.7
+0.75 | —       | —       | —        | —     | —         | —      | —      NEED CSV
+
+Small wall-clock delta; sell γ/η/params, not huge speedup.
+
+
+================================================================================
+STILL NEED
+================================================================================
+
+MUST finish (paper-critical):
+[x] Random FFN 50%          → T4 LOCKED 2026-08-27 (Set11 35.33 / Set14 34.90)
+[x] Matched latency Dense+Ours-QKV+Product → T7 LOCKED 2026-08-26
+    (same bench protocol; not iso-latency)
+
+USEFUL, not required to save the paper:
+[x] EXTRA λ-sweep + rn/re (Neo)                                 → T12 DONE
+
+DONE (do not re-open unless numbers change):
+[x] T1 multi-CS×multi-ds  |  T6 classical 4E  |  T8 score ladder (takeaway CORRECTED)
+[x] T9 matched top-r  |  T10 α-sweep  |  T8 rank fig  |  4.8 qualitative figure
+[x] T12 λ-sweep + rn/re
+
+CLAIM CONTROL REMINDERS:
+- Main result: |σḡ| γ=1.066 vs NE γ=0.732 @ matched α=0.75, quality tied
+- QKV = execution-aware spectral compression; FFN = complementary width (~31% params)
+- Qualitative: preserve structures — do NOT claim visible outperformance vs Dense
+- |σ| lower γ is OK to mention; do not claim grad relevance “wins” from 0.02 dB Urban
+- T12: λ=1 preferred in this sweep; rn too aggressive; re ≈ 4E failure — support NE form
+  Do not claim λ uniquely optimal beyond {0.25,0.5,0.75,1}
+
+================================================================================
+END
+================================================================================
