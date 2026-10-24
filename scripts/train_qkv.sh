@@ -1,8 +1,8 @@
 #!/bin/bash
 # Train Ours-QKV only (compress + FT30). No eval.
 #
-#   bash repro/train_qkv.sh
-#   bash repro/train_qkv.sh --cs 1,4,10,25,50 --alpha 0.75 --score ne
+#   bash scripts/train_qkv.sh
+#   bash scripts/train_qkv.sh --cs 1,4,10,25,50 --alpha 0.75 --score ne
 
 set -euo pipefail
 # shellcheck source=lib.sh
@@ -15,7 +15,7 @@ OUT_OVERRIDE=""
 
 usage() {
   cat <<'EOF'
-repro/train_qkv.sh — train Ours-QKV (compress + recover FT). No inference.
+scripts/train_qkv.sh — train Ours-QKV (compress + recover FT). No inference.
 
   --cs LIST       Sensing ratios (default 1,4,10,25,50)
   --alpha LIST    Rank budget α (default 0.75). Example: 0.60,0.75,0.90
@@ -105,4 +105,4 @@ for alpha in $(split_csv "${ALPHAS}"); do
 done
 
 echo "TRAIN QKV done. Checkpoints under ${OUT_ROOT}"
-echo "Infer: bash repro/infer_qkv.sh --ckpt-root ${OUT_ROOT}"
+echo "Infer: bash scripts/infer_qkv.sh --ckpt-root ${OUT_ROOT}"

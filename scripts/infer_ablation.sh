@@ -1,9 +1,9 @@
 #!/bin/bash
 # Infer allocation ablations from saved FT checkpoints. No training.
 #
-#   bash repro/infer_ablation.sh --jobs table2 --cs 25 --datasets set11,urban100
-#   bash repro/infer_ablation.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25
-#   bash repro/infer_ablation.sh --ckpt-root checkpoints/ablations --jobs uniform,sigma
+#   bash scripts/infer_ablation.sh --jobs table2 --cs 25 --datasets set11,urban100
+#   bash scripts/infer_ablation.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25
+#   bash scripts/infer_ablation.sh --ckpt-root checkpoints/ablations --jobs uniform,sigma
 
 set -euo pipefail
 # shellcheck source=lib.sh
@@ -19,7 +19,7 @@ OUT_OVERRIDE=""
 
 usage() {
   cat <<'EOF'
-repro/infer_ablation.sh — overlap eval of saved ablation checkpoints (stride 8)
+scripts/infer_ablation.sh — overlap eval of saved ablation checkpoints (stride 8)
 
   --jobs LIST       table2 | core | ... or explicit ids (default table2)
   --ckpt-root DIR   Train root or checkpoints/ablations (default $EXP_ROOT/ablation)

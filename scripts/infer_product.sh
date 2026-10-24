@@ -1,8 +1,8 @@
 #!/bin/bash
 # Infer Ours-QKV+FFN from saved FT checkpoints + prune_indices.pt. No training.
 #
-#   bash repro/infer_product.sh
-#   bash repro/infer_product.sh --ckpt-root runs/paper/product --cs 25 --ffn taylor
+#   bash scripts/infer_product.sh
+#   bash scripts/infer_product.sh --ckpt-root runs/paper/product --cs 25 --ffn taylor
 
 set -euo pipefail
 # shellcheck source=lib.sh
@@ -19,7 +19,7 @@ OUT_OVERRIDE=""
 
 usage() {
   cat <<'EOF'
-repro/infer_product.sh — overlap eval of saved Ours-QKV+FFN checkpoints (stride 8)
+scripts/infer_product.sh — overlap eval of saved Ours-QKV+FFN checkpoints (stride 8)
 
   --ckpt-root DIR   Train output root (default $EXP_ROOT/product)
   --ckpt PATH       Single checkpoint_best.pth (use with --cs --ffn-idx)

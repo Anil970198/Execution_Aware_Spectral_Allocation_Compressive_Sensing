@@ -1,8 +1,8 @@
 #!/bin/bash
 # Infer Ours-QKV from saved FT checkpoints. No training.
 #
-#   bash repro/infer_qkv.sh
-#   bash repro/infer_qkv.sh --ckpt-root runs/paper/qkv --cs 25 --alpha 0.75 --datasets set11
+#   bash scripts/infer_qkv.sh
+#   bash scripts/infer_qkv.sh --ckpt-root runs/paper/qkv --cs 25 --alpha 0.75 --datasets set11
 
 set -euo pipefail
 # shellcheck source=lib.sh
@@ -18,7 +18,7 @@ OUT_OVERRIDE=""
 
 usage() {
   cat <<'EOF'
-repro/infer_qkv.sh — overlap eval of saved Ours-QKV checkpoints (stride 8)
+scripts/infer_qkv.sh — overlap eval of saved Ours-QKV checkpoints (stride 8)
 
   --ckpt-root DIR   Train output root (default $EXP_ROOT/qkv)
   --ckpt PATH       Single checkpoint_best.pth (use with --cs)

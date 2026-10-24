@@ -2,9 +2,9 @@
 # Train allocation ablations (compress + FT30). No eval.
 # Same Python as Table 1 QKV; does not call the old SLURM worker.
 #
-#   bash repro/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
-#   bash repro/train_ablation.sh --jobs ne_a060,ne,ne_a090 --cs 25
-#   DRY_RUN=1 bash repro/train_ablation.sh --jobs uniform --cs 25
+#   bash scripts/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
+#   bash scripts/train_ablation.sh --jobs ne_a060,ne,ne_a090 --cs 25
+#   DRY_RUN=1 bash scripts/train_ablation.sh --jobs uniform --cs 25
 
 set -euo pipefail
 # shellcheck source=lib.sh
@@ -18,7 +18,7 @@ RANKS_CKPT=""
 
 usage() {
   cat <<'EOF'
-repro/train_ablation.sh — train score-ladder / matched-rank ablations. No inference.
+scripts/train_ablation.sh — train score-ladder / matched-rank ablations. No inference.
 
   --jobs LIST     table2 | core | ladder | all | lambda_sweep | denom_split |
                   alpha_sweep | uniform,sigma,ne,...  (default table2)
@@ -34,7 +34,6 @@ repro/train_ablation.sh — train score-ladder / matched-rank ablations. No infe
 Job ids: uniform, sigma, sigma_g, classical_4e, ne, matched_topr,
          ne_a090, ne_a060, ne_l025, ne_l05, ne_l075, rn, re
 table2 = uniform,sigma,sigma_g,ne,matched_topr,classical_4e,rn
-Historical workers remain in right_scripts/ and repro/legacy/.
 EOF
 }
 
@@ -182,4 +181,4 @@ for job in "${JOB_LIST[@]}"; do
 done
 
 echo "TRAIN ABLATION done. Checkpoints under ${OUT_ROOT}"
-echo "Infer: bash repro/infer_ablation.sh --ckpt-root ${OUT_ROOT} --jobs ${JOBS}"
+echo "Infer: bash scripts/infer_ablation.sh --ckpt-root ${OUT_ROOT} --jobs ${JOBS}"

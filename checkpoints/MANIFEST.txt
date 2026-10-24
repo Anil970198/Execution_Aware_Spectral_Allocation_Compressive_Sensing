@@ -27,7 +27,7 @@ ablations/   (all CS 25; load dense csformer/CS25, save FT checkpoint.pth)
 Not copied: α=0.50 knapsack (not in the paper tables).
 
 Infer (after you point --ckpt at these files):
-  bash repro/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
-  bash repro/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
+  bash scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
+  bash scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
       --ffn-idx checkpoints/ours-qkv-ffn/CS25/prune_indices.pt --cs 25
-  bash repro/infer_qkv.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25 --datasets set11,urban100
+  bash scripts/infer_qkv.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25 --datasets set11,urban100

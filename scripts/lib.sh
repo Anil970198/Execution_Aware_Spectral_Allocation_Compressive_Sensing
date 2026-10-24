@@ -1,11 +1,10 @@
 #!/bin/bash
-# Shared helpers for repro/*.sh  (source this; do not sbatch it)
-# Historical cluster jobs are unchanged under right_scripts/ and paper_release/scripts/.
+# Shared helpers for scripts/*.sh (source this; do not run it).
 
 set -euo pipefail
 
-REPRO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${REPRO_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${REPO_ROOT}"
 
 PYTHON="${PYTHON:-python}"

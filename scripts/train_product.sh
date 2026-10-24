@@ -1,8 +1,8 @@
 #!/bin/bash
 # Train Ours-QKV+FFN only (structured FFN prune + FT30). No eval.
 #
-#   bash repro/train_product.sh
-#   bash repro/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5
+#   bash scripts/train_product.sh
+#   bash scripts/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5
 
 set -euo pipefail
 # shellcheck source=lib.sh
@@ -19,7 +19,7 @@ OUT_OVERRIDE=""
 
 usage() {
   cat <<'EOF'
-repro/train_product.sh — train Ours-QKV+FFN (prune + recover FT). No inference.
+scripts/train_product.sh — train Ours-QKV+FFN (prune + recover FT). No inference.
 
   --cs LIST        Sensing ratios (default 1,4,10,25,50)
   --alpha LIST     Parent QKV rank budget α (default 0.75)
@@ -133,4 +133,4 @@ for alpha in $(split_csv "${ALPHAS}"); do
 done
 
 echo "TRAIN QKV+FFN done. Checkpoints under ${OUT_ROOT}"
-echo "Infer: bash repro/infer_product.sh --ckpt-root ${OUT_ROOT}"
+echo "Infer: bash scripts/infer_product.sh --ckpt-root ${OUT_ROOT}"
