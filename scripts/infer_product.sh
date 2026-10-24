@@ -1,5 +1,20 @@
 #!/bin/bash
+#SBATCH --job-name=infer_product
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --time=04:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+#
 # Infer Ours-QKV+FFN from saved FT checkpoints + prune_indices.pt. No training.
+# Edit --partition / --gres / --time / --cpus-per-task for your cluster.
+# Point test sets at YOUR paths:
+#   export DATA_ROOT=/path/to/test_sets
+#   sbatch scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
+#     --ffn-idx checkpoints/ours-qkv-ffn/CS25/prune_indices.pt --cs 25
 #
 #   bash scripts/infer_product.sh
 #   bash scripts/infer_product.sh --ckpt-root runs/paper/product --cs 25 --ffn taylor

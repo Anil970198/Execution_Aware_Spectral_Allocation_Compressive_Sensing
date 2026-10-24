@@ -1,5 +1,19 @@
 #!/bin/bash
+#SBATCH --job-name=infer_qkv
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --time=04:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+#
 # Infer Ours-QKV from saved FT checkpoints. No training.
+# Edit --partition / --gres / --time / --cpus-per-task for your cluster.
+# Point test sets at YOUR paths:
+#   export DATA_ROOT=/path/to/test_sets
+#   sbatch scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
 #
 #   bash scripts/infer_qkv.sh
 #   bash scripts/infer_qkv.sh --ckpt-root runs/paper/qkv --cs 25 --alpha 0.75 --datasets set11

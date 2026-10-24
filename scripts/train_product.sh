@@ -1,5 +1,20 @@
 #!/bin/bash
+#SBATCH --job-name=train_product
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --time=23:59:59
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+#
 # Train Ours-QKV+FFN only (structured FFN prune + FT30). No eval.
+# Edit --partition / --gres / --time / --cpus-per-task for your cluster.
+# Point datasets at YOUR paths before submit:
+#   export COCO_DIR=/path/to/coco/unlabeled2017
+#   export DATA_ROOT=/path/to/test_sets
+#   sbatch scripts/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5
 #
 #   bash scripts/train_product.sh
 #   bash scripts/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5

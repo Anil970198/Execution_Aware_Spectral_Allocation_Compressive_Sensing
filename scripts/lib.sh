@@ -19,6 +19,8 @@ fi
 PROJECT_DIR="${PROJECT_DIR:-${REPO_ROOT}}"
 SCRATCH="${SCRATCH:-${SCRATCH_ROOT:-${REPO_ROOT}/runs}}"
 EXP_ROOT="${EXP_ROOT:-${SCRATCH}/paper}"
+# Change these to your machine. Test sets default to $REPO_ROOT/data/{Set11,...}.
+# Train/calib uses COCO unlabeled2017 via COCO_DIR.
 DATA_ROOT="${DATA_ROOT:-${PROJECT_DIR}/data}"
 COCO_DIR="${COCO_DIR:-${SCRATCH}/datasets/coco/unlabeled2017}"
 if [[ ! -d "${COCO_DIR}" && -d "${PROJECT_DIR}/data/coco/unlabeled2017" ]]; then
@@ -131,6 +133,7 @@ require_dir() {
   fi
   if [[ ! -d "${p}" ]]; then
     echo "ERROR: missing directory: ${p}" >&2
+    echo "Set DATA_ROOT (Set11/Set14/Set5/BSD68/Urban100) and COCO_DIR (COCO unlabeled2017) to your paths." >&2
     exit 1
   fi
 }

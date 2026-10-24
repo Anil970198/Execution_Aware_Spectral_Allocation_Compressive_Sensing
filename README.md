@@ -28,6 +28,37 @@ All paper commands live in `scripts/`:
 
 Train never evals. Infer never trains. `DRY_RUN=1` prints commands.
 
+Each job script has `#SBATCH` headers (`--job-name`, `--partition`, `--gres`, `--time`, `--cpus-per-task`, `--nodes`, `--ntasks`, logs). **Edit those for your cluster** before `sbatch scripts/<job>.sh ...`.
+
+## Paths (change these)
+
+Test images and COCO are not in git. Point the jobs at **your** copies:
+
+```bash
+export DATA_ROOT=/path/to/your/test_sets          # Set11, Set14, Set5, BSD68, Urban100
+export COCO_DIR=/path/to/coco/unlabeled2017       # train / calib only
+```
+
+If you instead drop the five test folders under `data/` in this repo, `DATA_ROOT` can stay at the default (`./data`). Set11 must contain **exactly 11** images.
+
+## Cluster submit
+
+```bash
+mkdir -p logs
+export DATA_ROOT=/path/to/your/test_sets
+export COCO_DIR=/path/to/coco/unlabeled2017
+
+sbatch scripts/train_qkv.sh --cs 1,4,10,25,50 --alpha 0.75
+sbatch scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
+sbatch scripts/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5
+sbatch scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
+  --ffn-idx checkpoints/ours-qkv-ffn/CS25/prune_indices.pt --cs 25
+sbatch scripts/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
+sbatch scripts/infer_ablation.sh --ckpt-root checkpoints/ablations --jobs table2 --cs 25
+```
+
+`--partition=gpu` and `--gres=gpu:1` are placeholders. Replace them (and `--time`) with whatever your site uses.
+
 ## Install
 
 ```bash
@@ -36,7 +67,7 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Place test images under `data/` (see `data/README.md`). Set11 must contain **exactly 11** images.
+See **Paths** above and `data/README.md`.
 
 ## Checkpoints
 
@@ -55,23 +86,23 @@ Details: `checkpoints/MANIFEST.txt`.
 ## Table 1 (infer saved weights)
 
 ```bash
-bash scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
-bash scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
+sbatch scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
+sbatch scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
   --ffn-idx checkpoints/ours-qkv-ffn/CS25/prune_indices.pt --cs 25
 ```
 
-Train (COCO unlabeled2017; set `COCO_DIR`):
+Train (needs `COCO_DIR` on your machine):
 
 ```bash
-bash scripts/train_qkv.sh --cs 1,4,10,25,50 --alpha 0.75
-bash scripts/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5
+sbatch scripts/train_qkv.sh --cs 1,4,10,25,50 --alpha 0.75
+sbatch scripts/train_product.sh --cs 1,4,10,25,50 --alpha 0.75 --ffn taylor --keep 0.5
 ```
 
 ## Table 2 / ablations (CS 25)
 
 ```bash
-bash scripts/infer_ablation.sh --ckpt-root checkpoints/ablations --jobs table2 --cs 25
-bash scripts/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
+sbatch scripts/infer_ablation.sh --ckpt-root checkpoints/ablations --jobs table2 --cs 25
+sbatch scripts/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
 ```
 
 `--jobs table2` = uniform, |σ|, R, Ours NE, matched top-r, R/(4E), R/N.  

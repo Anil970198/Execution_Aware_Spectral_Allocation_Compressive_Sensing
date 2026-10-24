@@ -26,8 +26,10 @@ ablations/   (all CS 25; load dense csformer/CS25, save FT checkpoint.pth)
 
 Not copied: α=0.50 knapsack (not in the paper tables).
 
+Set DATA_ROOT / COCO_DIR to your dataset paths. Edit #SBATCH partition/gres/time in scripts/.
+
 Infer (after you point --ckpt at these files):
-  bash scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
-  bash scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
+  sbatch scripts/infer_qkv.sh --ckpt checkpoints/ours-qkv/CS25/checkpoint.pth --cs 25
+  sbatch scripts/infer_product.sh --ckpt checkpoints/ours-qkv-ffn/CS25/checkpoint.pth \
       --ffn-idx checkpoints/ours-qkv-ffn/CS25/prune_indices.pt --cs 25
-  bash scripts/infer_qkv.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25 --datasets set11,urban100
+  sbatch scripts/infer_qkv.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25 --datasets set11,urban100

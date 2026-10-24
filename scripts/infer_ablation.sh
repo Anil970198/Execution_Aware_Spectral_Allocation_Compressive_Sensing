@@ -1,5 +1,19 @@
 #!/bin/bash
+#SBATCH --job-name=infer_ablation
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --time=08:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+#
 # Infer allocation ablations from saved FT checkpoints. No training.
+# Edit --partition / --gres / --time / --cpus-per-task for your cluster.
+# Point test sets at YOUR paths:
+#   export DATA_ROOT=/path/to/test_sets
+#   sbatch scripts/infer_ablation.sh --ckpt-root checkpoints/ablations --jobs table2 --cs 25
 #
 #   bash scripts/infer_ablation.sh --jobs table2 --cs 25 --datasets set11,urban100
 #   bash scripts/infer_ablation.sh --ckpt checkpoints/ablations/ne/checkpoint.pth --cs 25

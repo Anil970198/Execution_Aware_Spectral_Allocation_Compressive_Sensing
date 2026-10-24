@@ -1,6 +1,20 @@
 #!/bin/bash
+#SBATCH --job-name=train_ablation
+#SBATCH --partition=gpu
+#SBATCH --gres=gpu:1
+#SBATCH --time=23:59:59
+#SBATCH --cpus-per-task=8
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --output=logs/%x_%j.out
+#SBATCH --error=logs/%x_%j.err
+#
 # Train allocation ablations (compress + FT30). No eval.
-# Same Python as Table 1 QKV; does not call the old SLURM worker.
+# Edit --partition / --gres / --time / --cpus-per-task for your cluster.
+# Point datasets at YOUR paths before submit:
+#   export COCO_DIR=/path/to/coco/unlabeled2017
+#   export DATA_ROOT=/path/to/test_sets
+#   sbatch scripts/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
 #
 #   bash scripts/train_ablation.sh --jobs table2 --cs 25 --alpha 0.75
 #   bash scripts/train_ablation.sh --jobs ne_a060,ne,ne_a090 --cs 25
