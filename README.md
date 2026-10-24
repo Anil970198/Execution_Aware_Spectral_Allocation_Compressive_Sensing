@@ -39,7 +39,7 @@ export DATA_ROOT=/path/to/your/test_sets          # Set11, Set14, Set5, BSD68, U
 export COCO_DIR=/path/to/coco/unlabeled2017       # train / calib only
 ```
 
-Or drop the five test folders under `data/` and leave `DATA_ROOT` unset. Set11 must contain **exactly 11** images (drop `house (1).tif` if present). Infer does not need COCO. Details: `data/README.md`.
+Or drop the five test folders under `data/` and leave `DATA_ROOT` unset. Infer does not need COCO. Details: `data/README.md`.
 
 ## Cluster submit
 

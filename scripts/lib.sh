@@ -147,9 +147,9 @@ check_set11() {
   require_dir "${d}"
   local n
   n="$(find "${d}" -maxdepth 1 \( -iname "*.tif" -o -iname "*.png" -o -iname "*.jpg" \) | wc -l | tr -d ' ')"
-  echo "Set11 image count: ${n} (need exactly 11; remove house (1).tif if present)"
+  echo "Set11 image count: ${n}"
   if [[ "${n}" -ne 11 ]]; then
-    echo "ERROR: Set11 must have exactly 11 images (got ${n})" >&2
+    echo "ERROR: Set11 has ${n} images (expected 11)" >&2
     exit 1
   fi
 }

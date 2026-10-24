@@ -8,13 +8,11 @@ Jobs look for these folder names under `DATA_ROOT` (default: this `data/` direct
 
 | Folder | Images | Used in |
 |--------|--------|---------|
-| `Set11` | **exactly 11** | Table 1, Table 2 |
+| `Set11` | 11 | Table 1, Table 2 |
 | `Set14` | 14 | Table 1 |
 | `Set5` | 5 | Table 1 |
 | `BSD68` | 68 | Table 1 |
 | `Urban100` | 100 | Table 1, Table 2 |
-
-If Set11 has `house (1).tif` as well as `house.tif`, delete the duplicate so the count is 11.
 
 Table 2 defaults to Set11 + Urban100. Table 1 infer uses all five (`--datasets all`).
 
