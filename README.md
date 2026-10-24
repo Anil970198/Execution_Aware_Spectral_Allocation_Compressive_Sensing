@@ -30,16 +30,16 @@ Train never evals. Infer never trains. `DRY_RUN=1` prints commands.
 
 Each job script has `#SBATCH` headers (`--job-name`, `--partition`, `--gres`, `--time`, `--cpus-per-task`, `--nodes`, `--ntasks`, logs). **Edit those for your cluster** before `sbatch scripts/<job>.sh ...`.
 
-## Paths (change these)
+## Data (change these paths)
 
-Test images and COCO are not in git. Point the jobs at **your** copies:
+Images are **not** in git and **not** in the Release (same as the `.pth` weights). Point the jobs at **your** copies:
 
 ```bash
 export DATA_ROOT=/path/to/your/test_sets          # Set11, Set14, Set5, BSD68, Urban100
 export COCO_DIR=/path/to/coco/unlabeled2017       # train / calib only
 ```
 
-If you instead drop the five test folders under `data/` in this repo, `DATA_ROOT` can stay at the default (`./data`). Set11 must contain **exactly 11** images.
+Or drop the five test folders under `data/` and leave `DATA_ROOT` unset. Set11 must contain **exactly 11** images (drop `house (1).tif` if present). Infer does not need COCO. Details: `data/README.md`.
 
 ## Cluster submit
 

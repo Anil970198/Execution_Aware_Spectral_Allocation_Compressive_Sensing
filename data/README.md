@@ -1,18 +1,47 @@
-Put test sets here **or** set `DATA_ROOT` to wherever they already live on your machine.
+# Data (not in git, not in the Release)
 
-Expected names (case as below):
+Same rule as checkpoints: this repo does not ship images. Put **your** copies here, or point `DATA_ROOT` / `COCO_DIR` at folders you already have.
 
-- `Set11` — exactly 11 images (remove `house (1).tif` if present)
-- `Set14`
-- `BSD68`
-- `Urban100`
-- `Set5`
+## Infer (test sets)
 
-Training / calibration is COCO unlabeled2017. That is **not** shipped. Set `COCO_DIR` to that folder on your cluster, for example:
+Jobs look for these folder names under `DATA_ROOT` (default: this `data/` directory):
+
+| Folder | Images | Used in |
+|--------|--------|---------|
+| `Set11` | **exactly 11** | Table 1, Table 2 |
+| `Set14` | 14 | Table 1 |
+| `Set5` | 5 | Table 1 |
+| `BSD68` | 68 | Table 1 |
+| `Urban100` | 100 | Table 1, Table 2 |
+
+If Set11 has `house (1).tif` as well as `house.tif`, delete the duplicate so the count is 11.
+
+Table 2 defaults to Set11 + Urban100. Table 1 infer uses all five (`--datasets all`).
+
+These are standard CS / SR test sets. Use the copies you already evaluate with. Do not upload them to this GitHub repo.
 
 ```bash
-export DATA_ROOT=/path/to/your/test_sets
+export DATA_ROOT=/path/to/your/test_sets   # contains Set11, Set14, Set5, BSD68, Urban100
+```
+
+## Train / calibration (COCO)
+
+Train jobs need **COCO unlabeled2017**. That set is large and is not shipped.
+
+```bash
 export COCO_DIR=/path/to/coco/unlabeled2017
 ```
 
-Do not assume the paper-lab paths. Change them to your setup before `sbatch` or `bash`.
+Infer jobs do not need COCO.
+
+## Layout example
+
+```
+data/Set11/*.tif
+data/Set14/...
+data/Set5/...
+data/BSD68/...
+data/Urban100/...
+```
+
+or keep them anywhere else and set `DATA_ROOT` to the parent of those five folders.
