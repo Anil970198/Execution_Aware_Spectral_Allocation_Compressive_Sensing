@@ -1,0 +1,1 @@
+Checkpoints only. Use the four zip files on this GitHub Release. Code is on branch main.
